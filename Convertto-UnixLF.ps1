@@ -25,22 +25,36 @@ function Convertto-UnixLF {
         $glob
     )
     begin {
-
-    }
-    process {
-        if (($glob.IndexOfAny([System.IO.Path]::GetInvalidPathChars()) -eq -1) -and (Test-Path $glob -PathType Leaf)) {
-            Write-Host 'Converting: '$glob "`n"
-            Get-ChildItem $glob |
-                ForEach-Object { $x = get-content -raw -path $_.fullname; $x -replace "`r`n", "`n" |
-                    set-content -path $_.fullname -Encoding UTF8 -NoNewline
+        $isClipboard = $true
+        $output
+        # check if there are comand line arguments
+        if ($args.Length -gt 0) {
+            Write-Host "args > 0..."
+            $glob = $args -Join " "
+            # check that command line is a valid path
+            if (($glob.IndexOfAny([System.IO.Path]::GetInvalidPathChars()) -eq -1) -and (Test-Path $glob -PathType Leaf)) {
+                Write-Host 'Converting: '$glob "`n"
+                Get-ChildItem $glob |
+                    ForEach-Object { $x = get-content -raw -path $_.fullname; $x -replace "`r`n", "`n" |
+                        set-content -path $_.fullname -Encoding UTF8 -NoNewline
                     Write-Host "> "$_.Name
                 }
-        } else {
-            $glob -replace "`n", "`n"
+            }
+            $isClipboard = $false
+        }
+    }
+    process {
+        if ($glob) {
+            $output += $glob -replace "`r`n", "`n"
+            $isClipboard = $false
         }
     }
     end {
-
+        if ($glob) {$isClipboard = $false}
+        if ($isClipboard) {
+            $clipboard = Get-Clipboard
+            $clipboard -replace "`r`n", "`n"
+        }
     }
 }
 
