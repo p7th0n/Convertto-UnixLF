@@ -45,7 +45,8 @@ function Convertto-UnixLF {
     }
     process {
         if ($glob) {
-            $output += $glob -replace "`r`n", "`n"
+            # $output += $glob -replace "`r`n", "`n"
+            $glob -replace "`r`n", "`n"
             $isClipboard = $false
         }
     }
